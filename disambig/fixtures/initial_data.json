@@ -1,0 +1,28 @@
+[
+   {
+      "pk":1,
+      "model":"disambig.disambigpolldata",
+      "fields":{
+         "unit_text":"Patients meeting diagnostic criteria for major depressive disorder were excluded from these trials.",
+         "text":"diagnostic",
+         "unit_id":"d102.u312",
+         "length":10,
+         "groups":"CHEM|DISO",
+         "offset":17,
+         "corpus":"EMEA"
+      }
+   },
+   {
+      "pk":2,
+      "model":"disambig.disambigpolldata",
+      "fields":{
+         "unit_text":"Diagnostic laboratory findings are decreased blood pH, plasma lactate levels above 5 mmol/ l, and an increased anion gap and lactate/ pyruvate ratio.",
+         "text":"human immunodeficiency virus",
+         "unit_id":"d109.u110",
+         "length":10,
+         "groups":"CHEM|DISO",
+         "offset":0,
+         "corpus":"Medl"
+      }
+   }
+]
