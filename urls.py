@@ -5,12 +5,6 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'mantracrowd.views.home', name='home'),
-    # url(r'^mantracrowd/', include('mantracrowd.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    url(r'^admin/', include(admin.site.urls)),
+  url(r'^accounts/reg/$', 'accounts.views.register_view'),
+  url(r'^admin/', include(admin.site.urls)),
 )
