@@ -4,21 +4,30 @@
 <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title>{{ title }}</title>
-        <link rel="stylesheet" type="text/css" href="http://localhost:8000/static/poll.css">        
+        <link rel="stylesheet" type="text/css" href="http://kitt.cl.uzh.ch/kitt/mantra/django-static/poll.css">        
 </head>
 
 <body>
-<div id="wrapper">
+<div id="wrapper" style="width: 300px">
 <div>
     <form method="POST" action="">{% csrf_token %}
         <table>
-            {% for field in form %}
             <tr>
-                <td>{{ field.label }}</td>
-                <td>{{ field }}</td>
+                <td>E-mail</td>
+                <td>{{ form.username }}</td>
                 <td class="error">{{ field.errors }}</td>
             </tr>
-            {% endfor %}
+            <tr>
+                <td>{{ form.password1.label }}</td>
+                <td>{{ form.password1 }}</td>
+                <td class="error">{{ field.errors }}</td>
+            </tr>
+            <tr>
+                <td>{{ form.password2.label }}</td>
+                <td>{{ form.password2 }}</td>
+                <td class="error">{{ field.errors }}</td>
+            </tr>
+
         </table>
         <input type="submit" value="Send request" />
     </form>
