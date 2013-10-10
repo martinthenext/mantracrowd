@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <title>Disambiguation poll</title>
+  <link rel="stylesheet" type="text/css" href="http://kitt.cl.uzh.ch/kitt/mantra/django-static/poll.css">
+  </head>
+
+  <body>
+    <div id="wrapper">
+      <div id="login">
+          <form action="#" method="post">
+            <label>Login</label> <input id="login_login" name="login" type="text" />
+            <label>Password</label> <input id="login_pwd" name="pwd" type="password" />
+            <!--<input id="login_btn" type="submit" value="Log in">-->
+            <a href="#" id="login_btn">Log in</a>
+          </form>
+      </div>
+      <div id="error"></div>
+      <div id="data"></div>
+      <div id="next">
+        <a href="#">Next</a>
+      </div>
+    </div>
+
+  <!-- JavaScript -->
+  <script src="http://code.jquery.com/jquery.js"></script>
+
+  <script>
+    var SERVICE_URL = "http://kitt.cl.uzh.ch/kitt/mantracrowd/disambig/next/";
+    var ACCOUNT_URL = "http://kitt.cl.uzh.ch/kitt/mantracrowd/accounts";
+
+    var current_data;
+
+    //poll-specific
+    var group_descriptions = {
+      "ACTI" : "Activities &amp; behaviour",
+      "ANAT" : "Anatomy",
+      "CHEM" : "Chemicals &amp; drugs",
+      "DEVI" : "Devices",
+      "DISO" : "Disorders",
+      "GENE" : "Genes $amp; Molecular Sequences",
+      "GEOG" : "Georaphic areas",
+      "LIVB" : "Living beings",
+      "OCCU" : "Occupations",
+      "ORGA" : "Organizations",
+      "PHYS" : "Physiology",
+      "PROC" : "Procedures",
+      "PHEN" : "Phenomena",
+      "OBJC" : "Objects"
+    }
+
+    function addDescriptionToOption(option) {
+      if (option in group_descriptions) {
+        return (option + ' <i>(' + group_descriptions[option] + ', UMLS)</i>' );
+      } else {
+        return option
+      }
+    }
+
+    function shuffleArray(array) {
+        for (var i = array.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+        return array;
+    }    
+
+    function render_question_html(data) {
+      html = "<div id=\"question\">"
+      if ("text" in data) {
+        html += data.text;
+      }
+      html += "</div>";
+
+      html += "<div id=\"options\">";
+        html += "<fieldset id=\"options\" style=\"border-style: none\">";
+
+        options = shuffleArray(data.options.split("|"));
+
+        if (data.allow_multiple == true) {
+          for (var i = 0; i < options.length; i++) {
+            html += "<p><label><input type=\"checkbox\" name=\"option\" value=\"" + options[i] + "\"> " + addDescriptionToOption(options[i]) + " </label></p>";
+          }            
+        } else {
+          for (var i = 0; i < options.length; i++) {
+            html += "<p><label><input type=\"radio\" name=\"option\" value=\"" + options[i] + "\"> " + addDescriptionToOption(options[i]) + " </label></p>";
+          } 
+        }
+        if (data.include_none == true ) {
+          html += "<p><label><input type=\"radio\" name=\"option\" value=\"None\"> None of the above</label></p>";
+        }
+        if (data.include_idk == true ) {
+          html += "<p><label><input type=\"radio\" name=\"option\" value=\"IDK\"> Don&#8217;t know</label></p>";
+        }
+
+        html += "</fieldset>";
+      html += "</div>";
+
+      return html;
+    }
+
+    function show_error(text) {
+      $('#error').show();
+      $('#error').html(text);
+    }
+
+    function hide_error(text) {
+      $('#error').hide();
+    }
+
+    function get_answer_list() {
+      var result = []
+      $('input[name=option]:checked').each(function() {
+        result.push($(this).val());
+      });
+      return result;
+    }
+
+    function finish_poll(message) {
+      $("#next").hide();
+      $("#data").html(message);
+    }
+
+    // Poll-specific
+    function get_data_from_instance(instance) {
+      var result = {}
+      result.options = instance.groups;
+      
+      var highlight_begin = instance.offset;
+      var highlight_end = instance.length + instance.offset;
+
+      result.text = "<p>Which group does the highligted text correspond to?</p>" +
+        "<blockquote><p>" +
+          instance.unit_text.slice(0, highlight_begin) + "<span style='background-color: yellow'>" +
+          instance.unit_text.slice(highlight_begin, highlight_end) + "</span>" +
+          instance.unit_text.slice(highlight_end) +
+        "</p></blockquote>";
+
+      result.include_none = true;
+      result.include_idk = true;
+
+      return result;
+    }
+
+    function query_callback(returned_data) {
+      current_data = returned_data;
+      if ("error" in returned_data) {
+        if (current_data.error == "noauth") {
+          finish_poll("Please, sign in.")
+        } else {
+          show_error(returned_data.error);
+        }
+      } else {
+        if ("finish" in returned_data) {
+          finish_poll("The poll is now over. Thank you for participating!")
+        } else {
+          hide_error();
+          if ("instance" in returned_data) {
+            // We need to render a poll-specific model instance here
+            current_data = get_data_from_instance(returned_data.instance)
+            current_data.state = returned_data.state
+          }
+          $('#data').html(render_question_html(current_data))          
+        }
+      }
+    }
+
+    // BOILERPLATE FROM THE DOCS
+    function csrf_setup() {
+      $.ajaxSetup({ 
+        beforeSend: function(xhr, settings) {
+
+          function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+              var cookies = document.cookie.split(';');
+              for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+                }
+              }
+            }
+            return cookieValue;
+          }
+
+          //if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+          //}
+        } 
+      });      
+    }
+
+    function render_login_block(username) {
+      $('#login').html('Logged in as <i>' + username + '</i> | <a href="' 
+            + ACCOUNT_URL + '/logout/">Log out</a>');
+    }
+
+    $(document).ready(function() {
+      $('#error').hide();
+
+      csrf_setup();
+
+      $.get(ACCOUNT_URL + "/login/", function(returned_data) {
+        if (returned_data.username) {
+          render_login_block(returned_data.username);
+          // User logged in ok, asking server for his state data
+          $.get(SERVICE_URL, query_callback)
+        } else {
+          show_error('Please, log in!')
+          $('#next').hide()
+        }
+      })
+
+      $('#login_btn').click(function() {
+        var json = {}
+        json.login = $("#login_login").val();
+        json.pwd = $("#login_pwd").val();
+
+        $.post(ACCOUNT_URL + "/login/", json, function(returned_data) {
+          if ("error" in returned_data) {
+            show_error(returned_data.error);
+          } else {
+            // Logged in! Reloading
+            location.reload();
+          }
+        });
+      });
+
+      $('#next').click(function() {        // Checking number of chosen options
+        var answer_list = get_answer_list();
+        if (answer_list.length == 0 && current_data.allow_empty != true) {
+          show_error("You need to pick at least one option");
+          return;
+        }
+        if (answer_list.length > 1 && current_data.allow_multiple != true) {
+          show_error("You need to pick only one option");
+          return;
+        }
+        // Sending answer to server
+        var answer = {
+          'state' : current_data.state,
+          'answer' : answer_list.join("|")
+        }
+
+        $.post(SERVICE_URL, answer, query_callback);
+
+      });
+    })
+  </script>
+  </body>
+
+</html>
