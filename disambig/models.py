@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Count
 import random
 
-N_QUESTIONS_PER_DATA_REQUIRED = 3
+N_QUESTIONS_PER_DATA_ENTRY_REQUIRED = 3
 
 class UserAnswer(models.Model):
   user = models.ForeignKey(User)
@@ -12,23 +13,25 @@ class UserAnswer(models.Model):
   def __unicode__(self):
     return "%s replied %s to %s" % (self.user.username, self.answer, unicode(self.question_data))
 
-''' Questions with 0 < answers < N_QUESTIONS_PER_DATA_REQUIRED - pending ones
-'''
-class PollDataInProgress(models.Model):
-  data = models.ForeignKey('DisambigPollData')
-
-''' Questions with answers = N_QUESTIONS_PER_DATA_REQUIRED - complete ones
-'''
-class PollDataComplete(models.Model):
-  data = models.ForeignKey('DisambigPollData')
-
 class DisambigPollDataManager(models.Manager):
   def get_poll_data_for_user(self, user):
-    # By far, it only returns random data entry that user hasn't seen
-    seen_ids = user.useranswer_set.values_list('question_data__id', flat=True)
-    unseen_poll_data = DisambigPollData.objects.exclude(id__in=seen_ids)
-    index = random.randint(1, unseen_poll_data.count()) - 1
-    return unseen_poll_data[index]
+    # get a set of user answers that have been answered but less than N_QUESTIONS_PER_DATA_ENTRY_REQUIRED
+    user_answers = UserAnswer.objects.annotate(n_questions=Count('question_data')).filter(
+      n_questions__lt=N_QUESTIONS_PER_DATA_ENTRY_REQUIRED
+    ).exclude(user=user)
+    if user_answers:
+      # pick a random one from them
+      index = random.randint(0, user_answers.count() - 1)
+      return user_answers[index].question_data
+    else:
+      # all questions envolved got enough answers, picking question randomly until fits
+      while True:
+        print 'searching for new'
+        question = self.get_random()
+        # check if this question has been answered by this user
+        if not UserAnswer.objects.filter(question_data=question):
+          break
+      return question
 
   def get_random(self):
     n_rows = DisambigPollData.objects.count()
