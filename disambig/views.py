@@ -40,10 +40,10 @@ def next_question(request):
               user_state_data.save()
           else:
             if user_state_data.state < N_QUESTIONS + 2:
-              UserAnswer.objects.create(
-                user=request.user, 
-                question_data=user_state_data.pending_question_data,
-                answer=request.POST['answer']
+              DisambigPollData.objects.save_answer_by_user(
+                request.user,
+                user_state_data.pending_question_data,
+                request.POST['answer']
               )
             user_state_data.state = user_state_data.state + 1
             user_state_data.pending_question_data = None

@@ -189,7 +189,11 @@
           }
 
           //if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
-            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            var cookie = getCookie('csrftoken');
+            console.log("Cookie: " + cookie);
+            if (cookie) {
+              xhr.setRequestHeader("X-CSRFToken", cookie);
+            }
           //}
         } 
       });      
