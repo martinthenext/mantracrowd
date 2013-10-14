@@ -4,19 +4,20 @@ import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 
-N_QUESTIONS = 2
+N_QUESTIONS = 10
 
 INITIAL_QUESTION = {
   'state' : 1,
-  'text' : """<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-           Suspendisse pellentesque vulputate magna, ac blandit diam suscipit
-           sit amet. Etiam bibendum turpis vitae lorem eleifend, non dapibus 
-           enim tincidunt. Vivamus sollicitudin, tellus eu ultrices cursus, 
-           viverra ut elit. Sed non cursus turpis, ac rhoncus erat. Etiam elementum
-           laoreet nunc, a posuere lorem egestas non. Fusce volutpat eget nulla at blandit.
-           Sed gravida eu lacus a pharetra. Nam sed adipiscing orci, eu accumsan 
-           turpis. Aenean vestibulum ultricies ornare.</p>
-           <p>Do you agree with Terms of Use?</p>""",
+  'text' : """<p>Terms of Use:</p>
+
+  <p>This poll is a crowd sourcing approach for the disambiguation of concepts that have been identified from the biomedical literature. All concepts have been assigned semantic types. For some concepts the automatic assignment has produced two or three different results.</p>
+
+  <p>We ask users of this Web site to chose the correct semantic type for the given term by working through a predefined number of questions. As alternative you may indicate that it is not possible to assign the correct type ("I don't know" or "None of the above").</p>
+
+  <p>Please do the assignment as thoroughly as you can.</p>
+
+  <p>Do you agree with the Terms of Use?</p>
+  """,
   'options' : "Yes|No",
   'allow_multiple' : False,
   'allow_empty' : False
