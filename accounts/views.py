@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth import authenticate, login, logout
@@ -5,11 +6,15 @@ from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.middleware import csrf
 import json
 
+@csrf_protect
 def login_view(request):
     if request.method == "GET":
-        return HttpResponse(json.dumps({'username':request.user.username}), mimetype='application/json')
+        response = HttpResponse(json.dumps({'username':request.user.username}), mimetype='application/json')
+        response.set_cookie(settings.CSRF_COOKIE_NAME, csrf.get_token(request))
+        return response
     try:
         username = request.POST['login']
         password = request.POST['pwd']
