@@ -26,7 +26,6 @@ class DisambigPollDataManager(models.Manager):
     else:
       # all questions envolved got enough answers, picking question randomly until fits
       while True:
-        print 'searching for new'
         question = self.get_random()
         # check if this question has been answered by this user
         if not UserAnswer.objects.filter(question_data=question):

@@ -9,13 +9,15 @@ N_QUESTIONS = 10
 INITIAL_QUESTION = {
   'state' : 1,
   'text' : """<p>Terms of Use:</p>
-
-  <p>This poll is a crowd sourcing approach for the disambiguation of concepts that have been identified from the biomedical literature. All concepts have been assigned semantic types. For some concepts the automatic assignment has produced two or three different results.</p>
-
-  <p>We ask users of this Web site to chose the correct semantic type for the given term by working through a predefined number of questions. As alternative you may indicate that it is not possible to assign the correct type ("I don't know" or "None of the above").</p>
-
+  <p>This poll is a crowd sourcing approach for the disambiguation
+   of concepts that have been identified from the biomedical literature.
+   All concepts have been assigned semantic types. For some concepts the
+   automatic assignment has produced two or three different results.</p>
+  <p>We ask users of this Web site to chose the correct semantic
+   type for the given term by working through a predefined number of
+   questions. As alternative you may indicate that it is not possible
+   to assign the correct type ("I don't know" or "None of the above").</p>
   <p>Please do the assignment as thoroughly as you can.</p>
-
   <p>Do you agree with the Terms of Use?</p>
   """,
   'options' : "Yes|No",
