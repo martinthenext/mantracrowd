@@ -3,7 +3,7 @@
   <head>
   <meta charset="utf-8">
   <title>Disambiguation poll</title>
-  <link rel="stylesheet" type="text/css" href="http://kitt.cl.uzh.ch/kitt/mantra/django-static/poll.css">
+  <link rel="stylesheet" type="text/css" href="https://kitt.cl.uzh.ch/kitt/mantra/django-static/poll.css">
   </head>
 
   <body>
@@ -24,11 +24,11 @@
     </div>
 
   <!-- JavaScript -->
-  <script src="http://code.jquery.com/jquery.js"></script>
+  <script src="https://code.jquery.com/jquery.js"></script>
 
   <script>
-    var SERVICE_URL = "http://kitt.cl.uzh.ch/kitt/mantracrowd/disambig/next/";
-    var ACCOUNT_URL = "http://kitt.cl.uzh.ch/kitt/mantracrowd/accounts";
+    var SERVICE_URL = "https://kitt.cl.uzh.ch/kitt/mantracrowd/disambig/next/";
+    var ACCOUNT_URL = "https://kitt.cl.uzh.ch/kitt/mantracrowd/accounts";
 
     var current_data;
 
@@ -48,6 +48,20 @@
       "PROC" : "Procedures",
       "PHEN" : "Phenomena",
       "OBJC" : "Objects"
+    }
+
+    function getUrlParameters() { 
+      if (window.location.href.indexOf('?') === -1) {
+         return null;
+      } else {
+        var pairs = window.location.href.split('?')[1].split('&');
+        var result = {}
+        for (var i = 0; i < pairs.length; i++) {
+          pair = pairs[i].split('=');
+          result[pair[0]] = pair[1]
+        }
+        return result;
+      }
     }
 
     function addDescriptionToOption(option) {

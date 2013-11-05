@@ -3,7 +3,32 @@ from django.contrib.auth.models import User
 from django.db.models import Count
 import random
 
+from boto.mturk.connection import MTurkConnection
+from django.conf import settings
+import mturk
+
 N_QUESTIONS_PER_DATA_ENTRY_REQUIRED = 3
+
+class Hit(models.Model):
+  hit_id = models.CharField(max_length=32, blank=True, null=True)
+  hit_url = models.URLField(blank=True, null=True)
+  
+  def __unicode__(self):
+    if self.hit_id:
+      return self.hit_url
+    else:
+      return "Unasigned HIT"
+
+  class Meta:
+    verbose_name = "HIT"
+    verbose_name_plural = "HITs"
+
+  def save(self, *args, **kwargs):
+    if self.pk is None:
+      hit = mturk.create_disambig_hit()
+      self.hit_id = hit.HITId
+      self.hit_url = mturk.get_hit_url(hit)
+    super(Hit, self).save(*args, **kwargs)
 
 class UserAnswer(models.Model):
   user = models.ForeignKey(User)
