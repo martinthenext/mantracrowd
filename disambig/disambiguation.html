@@ -64,6 +64,20 @@
       }
     }
 
+    function isOpenFromMTurk() {
+      var re = /mturk.com/
+
+      if (window.self === window.top) {
+        return false;
+      } else {
+        if (re.test(document.referrer)) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+
     function addDescriptionToOption(option) {
       if (option in group_descriptions) {
         return (option + ' <i>(' + group_descriptions[option] + ', UMLS)</i>' );
@@ -139,6 +153,7 @@
     }
 
     // Poll-specific
+    // Data model : instance [corpus, groups, id, length, offset, text, unit_id, unit_text]
     function get_data_from_instance(instance) {
       var result = {}
       result.options = instance.groups;
@@ -174,12 +189,28 @@
           hide_error();
           if ("instance" in returned_data) {
             // We need to render a poll-specific model instance here
-            current_data = get_data_from_instance(returned_data.instance)
-            current_data.state = returned_data.state
+            current_data = get_data_from_instance(returned_data.instance);
+            current_data.state = returned_data.state;
           }
           $('#data').html(render_question_html(current_data))          
         }
       }
+    }
+
+    function show_example_question() {
+      var hit_preview_html = '<h1>Disambiguation survey</h1><div>In this survey you will have to answer 10 questions like this:</div>';
+
+      var fake_instance = {
+        'corpus' : 'IMEA',
+        'groups' : 'ANAT|LIVB',
+        'id' : 54635,
+        'length' : 4,
+        'offset' : 60, 
+        'text' : 'body',
+        'unit_id' : "d362.u273",
+        'unit_text' : "When an infant is given the vaccine, the immune system (the body’s natural defences) will make antibodies against the most commonly occurring types of rotavirus."
+      };
+      $('#data').html(hit_preview_html + render_question_html(get_data_from_instance(fake_instance)));
     }
 
     // BOILERPLATE FROM THE DOCS
@@ -204,7 +235,6 @@
 
           //if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
             var cookie = getCookie('csrftoken');
-            console.log("Cookie: " + cookie);
             if (cookie) {
               xhr.setRequestHeader("X-CSRFToken", cookie);
             }
@@ -223,16 +253,28 @@
 
       csrf_setup();
 
-      $.get(ACCOUNT_URL + "/login/", function(returned_data) {
-        if (returned_data.username) {
-          render_login_block(returned_data.username);
-          // User logged in ok, asking server for his state data
-          $.get(SERVICE_URL, query_callback)
-        } else {
-          show_error('Please, log in!')
-          $('#next').hide()
+      if (isOpenFromMTurk()) {
+        $('#login').hide();
+        var parameters = getUrlParameters();
+        if (parameters.assignmentId === 'ASSIGNMENT_ID_NOT_AVAILABLE') {
+          // HIT preview
+          $('#next').hide();
+          show_example_question();
         }
-      })
+      } else {
+        // Login procedure for testers
+        $.get(ACCOUNT_URL + "/login/", function(returned_data) {
+          if (returned_data.username) {
+            render_login_block(returned_data.username);
+            // User logged in ok, asking server for his state data
+            $.get(SERVICE_URL, query_callback)
+          } else {
+            show_error('Please, log in!')
+            $('#next').hide()
+          }
+        })
+
+      } 
 
       $('#login_btn').click(function() {
         var json = {}
