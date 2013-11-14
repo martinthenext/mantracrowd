@@ -12,8 +12,10 @@ urlpatterns = patterns('',
   url(r'^accounts/reg/$', 'accounts.views.register_view'),
   url(r'^accounts/login/$', 'accounts.views.login_view'),
   url(r'^accounts/logout/$', 'accounts.views.logout_view'),
-
-  url(r'^disambig/next/$', 'disambig.views.next_question'),
+  url(r'^accounts/turker/$', 'accounts.views.login_turker', name='login_turker'),                 
   
+  url(r'^disambig/next/$', 'disambig.views.next_question'),
+
   url(r'^admin/', include(admin.site.urls)),
 )
+  

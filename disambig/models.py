@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.db.models import Count
 import random
 
-from boto.mturk.connection import MTurkConnection
 from django.conf import settings
 import mturk
 
@@ -15,7 +14,7 @@ class Hit(models.Model):
   
   def __unicode__(self):
     if self.hit_id:
-      return self.hit_url
+      return 'HIT#' + self.hit_id
     else:
       return "Unasigned HIT"
 

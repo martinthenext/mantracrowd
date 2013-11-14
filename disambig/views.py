@@ -4,7 +4,7 @@ import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 
-N_QUESTIONS = 10
+N_QUESTIONS = 20
 
 INITIAL_QUESTION = {
   'state' : 1,

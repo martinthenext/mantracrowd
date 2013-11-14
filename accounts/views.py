@@ -36,7 +36,7 @@ def login_view(request):
 @csrf_protect
 def login_turker(request):
     if request.method == "GET":
-        result = {'status':'LOL'}
+        result = {'status':'GET'}
     if request.method == "POST":
         if 'worker_id' not in request.POST:
             result = {'status' : 'error'}
