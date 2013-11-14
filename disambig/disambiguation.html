@@ -65,7 +65,7 @@
     }
 
     function isOpenFromMTurk() {
-      var re = /mturk.com/
+      var re = /mturk.com/;
 
       if (window.self === window.top) {
         return false;
@@ -76,6 +76,12 @@
           return false;
         }
       }
+    }
+
+    function getMturkExternalSumbitUrl() {
+      var re = /.*mturk/;
+
+      return re.exec(document.referrer)[0] + '/externalSubmit';
     }
 
     function addDescriptionToOption(option) {
@@ -147,9 +153,34 @@
       return result;
     }
 
+    function post_to_url(path, params) {
+      var form = document.createElement("form");
+      form.setAttribute("method", "post");
+      form.setAttribute("action", path);
+
+      for(var key in params) {
+        var hiddenField = document.createElement("input");
+        hiddenField.setAttribute("type", "hidden");
+        hiddenField.setAttribute("name", key);
+        hiddenField.setAttribute("value", params[key]);
+
+        form.appendChild(hiddenField);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+    }
+
     function finish_poll(message) {
       $("#next").hide();
       $("#data").html(message);
+      if (worker_id) {
+        // need to submit dummy data to MTurk
+        var parameters = getUrlParameters();
+        var to_send = {assignmentId : parameters.assignmentId, success : true};
+        post_to_url(getMturkExternalSumbitUrl(), to_send);
+        console.log('sent');
+      }
     }
 
     // Poll-specific
@@ -248,6 +279,8 @@
             + ACCOUNT_URL + '/logout/">Log out</a>');
     }
 
+    var worker_id = false;
+
     $(document).ready(function() {
       $('#error').hide();
 
@@ -260,6 +293,17 @@
           // HIT preview
           $('#next').hide();
           show_example_question();
+        } else {
+          // Turker took the hit
+          worker_id = parameters.workerId;
+          $.post(ACCOUNT_URL + '/turker/', {'worker_id' : worker_id}, function(returned_data) {
+            if (returned_data.status != 'error') {
+              // We can serve a task for him
+              $.get(SERVICE_URL, query_callback);
+            } else {
+              show_error('Error occured, please try reloading the page');
+            }
+          });
         }
       } else {
         // Login procedure for testers
@@ -269,11 +313,10 @@
             // User logged in ok, asking server for his state data
             $.get(SERVICE_URL, query_callback)
           } else {
-            show_error('Please, log in!')
+            show_error('Please, log in!');
             $('#next').hide()
           }
         })
-
       } 
 
       $('#login_btn').click(function() {

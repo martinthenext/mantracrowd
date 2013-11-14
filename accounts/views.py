@@ -8,6 +8,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.middleware import csrf
 import json
+from django.contrib.auth.models import User
 
 @csrf_protect
 def login_view(request):
@@ -31,6 +32,30 @@ def login_view(request):
         reply = {'error' : 'Login data malformed'} 
 
     return HttpResponse(json.dumps(reply), mimetype='application/json')
+
+@csrf_protect
+def login_turker(request):
+    if request.method == "GET":
+        result = {'status':'LOL'}
+    if request.method == "POST":
+        if 'worker_id' not in request.POST:
+            result = {'status' : 'error'}
+        else:
+            worker_id = request.POST['worker_id']
+            turker_name = 'turker#' + worker_id
+            if not User.objects.filter(username=turker_name):
+                result = {'status' : 'created and logged in'}
+                user = User(username=turker_name, is_active=True)
+                user.set_password('turker')
+                user.save()
+            else:
+                result = {'status' : 'logged in'}
+            turker_user = authenticate(username=turker_name, password='turker')
+            login(request, turker_user)
+
+    return HttpResponse(json.dumps(result), mimetype='application/json')
+    
+        
 
 def logout_view(request):
     if request.method == "POST":
