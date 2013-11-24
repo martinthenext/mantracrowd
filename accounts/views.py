@@ -9,6 +9,7 @@ from django.template import RequestContext
 from django.middleware import csrf
 import json
 from django.contrib.auth.models import User
+from models import TurkerAssignment
 
 @csrf_protect
 def login_view(request):
@@ -48,6 +49,12 @@ def login_turker(request):
                 user = User(username=turker_name, is_active=True)
                 user.set_password('turker')
                 user.save()
+                # save assignment info as well
+                TurkerAssignment.objects.create(user=user, 
+                    worker_id = worker_id,
+                    assignment_id = request.POST['assignment_id'],
+                    hit_id = request.POST['hit_id']
+                )
             else:
                 result = {'status' : 'logged in'}
             turker_user = authenticate(username=turker_name, password='turker')

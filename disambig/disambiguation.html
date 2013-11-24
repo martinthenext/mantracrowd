@@ -179,7 +179,6 @@
         var parameters = getUrlParameters();
         var to_send = {assignmentId : parameters.assignmentId, success : true};
         post_to_url(getMturkExternalSumbitUrl(), to_send);
-        console.log('sent');
       }
     }
 
@@ -296,7 +295,12 @@
         } else {
           // Turker took the hit
           worker_id = parameters.workerId;
-          $.post(ACCOUNT_URL + '/turker/', {'worker_id' : worker_id}, function(returned_data) {
+          var assignment_id = parameters.assignmentId;
+          var hit_id = parameters.hitId;
+          $.post(ACCOUNT_URL + '/turker/', {
+            'worker_id' : worker_id,
+            'assignment_id' : assignment_id,
+            'hit_id' : hit_id }, function(returned_data) {
             if (returned_data.status != 'error') {
               // We can serve a task for him
               $.get(SERVICE_URL, query_callback);
