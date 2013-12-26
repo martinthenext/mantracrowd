@@ -5,8 +5,29 @@ import random
 
 from django.conf import settings
 import mturk
+from accounts.models import TurkerAssignment
 
 N_QUESTIONS_PER_DATA_ENTRY_REQUIRED = 3
+N_QUESTIONS = 20
+
+INITIAL_QUESTION = {
+  'state' : 1,
+  'text' : """<p>Terms of Use:</p>
+  <p>This poll is a crowd sourcing approach for the disambiguation
+   of concepts that have been identified from the biomedical literature.
+   All concepts have been assigned semantic types. For some concepts the
+   automatic assignment has produced two or three different results.</p>
+  <p>We ask users of this Web site to chose the correct semantic
+   type for the given term by working through a predefined number of
+   questions. As alternative you may indicate that it is not possible
+   to assign the correct type ("I don't know" or "None of the above").</p>
+  <p>Please do the assignment as thoroughly as you can.</p>
+  <p>Do you agree with the Terms of Use?</p>
+  """,
+  'options' : "Yes|No",
+  'allow_multiple' : False,
+  'allow_empty' : False
+}
 
 class Hit(models.Model):
   hit_id = models.CharField(max_length=32, blank=True, null=True)
@@ -67,6 +88,16 @@ class DisambigPollDataManager(models.Manager):
 
   def save_answer_by_user(self, user, question_data, answer):
     UserAnswer.objects.create(user=user, question_data=question_data, answer=answer)
+
+  def finalize_poll(self, user):
+    turker_assignment = TurkerAssignment.objects.filter(user=user)
+    if turker_assignment:
+      # Respondent was a turker, decide if we want to pay him and approve/reject assignment
+      mturk.finalize_assignment(turker_assignment.assignment_id, True)
+
+  def is_user_assignment_complete(self, user):
+    final_state = N_QUESTIONS + 2
+    return user.userstate_set.all()[0].state == final_state
 
 class DisambigPollData(models.Model):
   unit_id = models.CharField(max_length=20)

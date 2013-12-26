@@ -1,29 +1,8 @@
 from django.http import HttpResponse, Http404
-from models import UserState, DisambigPollData, UserAnswer
+from models import UserState, DisambigPollData, UserAnswer, N_QUESTIONS, INITIAL_QUESTION
 import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
-
-N_QUESTIONS = 20
-
-INITIAL_QUESTION = {
-  'state' : 1,
-  'text' : """<p>Terms of Use:</p>
-  <p>This poll is a crowd sourcing approach for the disambiguation
-   of concepts that have been identified from the biomedical literature.
-   All concepts have been assigned semantic types. For some concepts the
-   automatic assignment has produced two or three different results.</p>
-  <p>We ask users of this Web site to chose the correct semantic
-   type for the given term by working through a predefined number of
-   questions. As alternative you may indicate that it is not possible
-   to assign the correct type ("I don't know" or "None of the above").</p>
-  <p>Please do the assignment as thoroughly as you can.</p>
-  <p>Do you agree with the Terms of Use?</p>
-  """,
-  'options' : "Yes|No",
-  'allow_multiple' : False,
-  'allow_empty' : False
-}
 
 """ Send emtpy answers to get current state
 """
@@ -82,6 +61,7 @@ def next_question(request):
         reply = {
           'finish' : True,
         }
+        DisambigPollData.objects.finalize_poll(request.user)
 
   else:
     reply = { 'error' : "noauth" }

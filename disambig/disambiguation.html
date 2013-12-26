@@ -305,7 +305,7 @@
               // We can serve a task for him
               $.get(SERVICE_URL, query_callback);
             } else {
-              show_error('Error occured, please try reloading the page');
+              show_error(returned_data.message);
             }
           });
         }
