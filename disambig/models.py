@@ -93,7 +93,7 @@ class DisambigPollDataManager(models.Manager):
     turker_assignment = TurkerAssignment.objects.filter(user=user)
     if turker_assignment:
       # Respondent was a turker, decide if we want to pay him and approve/reject assignment
-      mturk.finalize_assignment(turker_assignment.assignment_id, True)
+      mturk.finalize_assignment(turker_assignment[0].assignment_id, True)
 
   def is_user_assignment_complete(self, user):
     final_state = N_QUESTIONS + 2
