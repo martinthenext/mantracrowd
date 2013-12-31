@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Count
 import random
+import itertools
 
 from django.conf import settings
 import mturk
@@ -104,8 +105,10 @@ class DisambigPollDataManager(models.Manager):
     return [DisambigPollData.objects.select_related('useranswer').get(id=row['question_data']) 
       for row in UserAnswer.objects.values('question_data').distinct('question_data')]
 
-  #  DisambigPollData.objects.annotate(answer_count=Count('useranswer')).filter(answer_count__gte=1)
-  # [answer['question_data'] for answer in UserAnswer.objects.values('question_data').distinct('question_data')]
+  def get_answer_stats(self, data):
+    answers = [row['answer'] for row in data.useranswer_set.values('answer')]
+    grouped = [(answer_type, answers.count(answer_type)) for answer_type in set(answers)]
+    return sorted(grouped, key=lambda (x,y) : y, reverse=True)
 
 class DisambigPollData(models.Model):
   unit_id = models.CharField(max_length=20)

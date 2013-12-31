@@ -1,5 +1,6 @@
 from django.http import HttpResponse, Http404
 from models import UserState, DisambigPollData, UserAnswer, N_QUESTIONS, INITIAL_QUESTION
+from django.contrib.auth.models import User
 import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
@@ -65,5 +66,17 @@ def next_question(request):
 
   else:
     reply = { 'error' : "noauth" }
+
+  return HttpResponse(json.dumps(reply, ensure_ascii=False), content_type='application/json')
+
+def answers(request):
+  if request.user.is_authenticated:
+    questions = DisambigPollData.objects.get_answered_question_data()
+    reply = {}
+    reply['answer_count'] = UserAnswer.objects.count()
+    reply['user_count'] = User.objects.count()
+    reply['questions'] = [model_to_dict(q) for q in questions]
+  else:
+    raise Http404
 
   return HttpResponse(json.dumps(reply, ensure_ascii=False), content_type='application/json')

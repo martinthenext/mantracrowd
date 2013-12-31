@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Disambiguation poll answers</title>
+    <link rel="stylesheet" type="text/css" href="https://kitt.cl.uzh.ch/kitt/mantra/django-static/poll.css">
+  </head>
+
+  <body>
+    <div id="wrapper">
+      <div id="data">
+        <h2>Answered questions</h2>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery.js"></script>
+    <script>
+      var SERVICE_URL = 'https://kitt.cl.uzh.ch/kitt/mantracrowd/disambig/answers/'
+
+      function render_question_to_text(instance) {
+        var highlight_begin = instance.offset;
+        var highlight_end = instance.length + instance.offset;
+
+        return instance.unit_text.slice(0, highlight_begin) + "<span style='background-color: yellow'>" +
+            instance.unit_text.slice(highlight_begin, highlight_end) + "</span>" +
+            instance.unit_text.slice(highlight_end) +
+          "</p></blockquote>";
+      }      
+
+      $.get(SERVICE_URL, function(result) {
+        console.log(result);
+        var result = result;
+        $('#data').append('<p><b>' + result.user_count + ' users gave ' + result.answer_count + ' answers to ' + result.questions.length + ' questions</b></p>');
+        result.questions.forEach(function(item) {
+          $('#data').append('<p>' + render_question_to_text(item) + '</p>');
+        });
+      })
+    </script>
+  </body>
+
+</html>
