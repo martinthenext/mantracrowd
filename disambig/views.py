@@ -75,7 +75,14 @@ def answers(request):
     reply = {}
     reply['answer_count'] = UserAnswer.objects.count()
     reply['user_count'] = User.objects.count()
-    reply['questions'] = [model_to_dict(q) for q in questions]
+
+    def serialize_question_and_answers(question):
+      result = {}
+      result['question'] = model_to_dict(q)
+      result['answers'] = DisambigPollData.objects.get_answer_stats(q)
+      return result
+
+    reply['questions'] = [serialize_question_and_answers(q) for q in questions]
   else:
     raise Http404
 
