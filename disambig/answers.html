@@ -32,12 +32,13 @@
         var result = result;
         $('#data').append('<p><b>' + result.user_count + ' users gave ' + result.answer_count + ' answers to ' + result.questions.length + ' questions</b></p>');
         result.questions.forEach(function(item) {
-          $('#data').append('<p>' + render_question_to_text(item.question) + '</p>');
-          $('#data').append('<table border="1"><tr><th>Answer</th><th>Votes</th></tr>');
+          var to_append = '<p>' + render_question_to_text(item.question) + '</p>';
+          to_append += '<table><tr><th>Answer</th><th>Votes</th></tr>';
             item.answers.forEach(function(answer) {
-             $('#data').append('<tr><td style="padding: 2px"><i>' + answer[0] + '</i></td><td>' + answer[1] + '</td></tr>');
+             to_append += '<tr><td style="padding: 2px"><i>' + answer[0] + '</i></td><td>' + answer[1] + '</td></tr>';
             });
-          $('#data').append('</table>');
+          to_append += '</table>';
+          $('#data').append(to_append);
         });
       })
     </script>
