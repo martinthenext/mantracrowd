@@ -99,6 +99,14 @@ class DisambigPollDataManager(models.Manager):
     final_state = N_QUESTIONS + 2
     return user.userstate_set.all()[0].state == final_state
 
+  # select_related *hopefully* prefetches related useranswer instances
+  def get_answered_question_data(self):
+    return [DisambigPollData.objects.select_related('useranswer').get(id=row['question_data']) 
+      for row in UserAnswer.objects.values('question_data').distinct('question_data')]
+
+  #  DisambigPollData.objects.annotate(answer_count=Count('useranswer')).filter(answer_count__gte=1)
+  # [answer['question_data'] for answer in UserAnswer.objects.values('question_data').distinct('question_data')]
+
 class DisambigPollData(models.Model):
   unit_id = models.CharField(max_length=20)
   text = models.CharField(max_length=32)
