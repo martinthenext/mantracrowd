@@ -63,9 +63,10 @@ class DisambigPollDataManager(models.Manager):
   def get_poll_data_for_user(self, user):
     # get a set of user answers that have been answered by OTHER users 
     # but less than N_QUESTIONS_PER_DATA_ENTRY_REQUIRED times
-    user_answers = UserAnswer.objects.annotate(n_questions=Count('question_data')).filter(
-      n_questions__lt=N_QUESTIONS_PER_DATA_ENTRY_REQUIRED
-    ).exclude(user=user)
+    user_answers = UserAnswer.objects \
+      .values('question_data').annotate(n_questions=Count('question_data')) \
+      .filter(n_questions__lt=N_QUESTIONS_PER_DATA_ENTRY_REQUIRED) \
+      .exclude(user=user)
     # exclude answers to the questions that USER answered
     seen_ids = user.useranswer_set.values_list('question_data__id', flat=True)
     to_chose_from = user_answers.exclude(question_data__id__in=seen_ids)
@@ -74,7 +75,7 @@ class DisambigPollDataManager(models.Manager):
       index = random.randint(0, to_chose_from.count() - 1)
       return to_chose_from[index].question_data
     else:
-      # all questions envolved got enough answers, picking question randomly until fits
+      # all questions envolved got enough answers, picking question randomly until unanswered found
       while True:
         question = self.get_random()
         # check if this question has been answered by this user
