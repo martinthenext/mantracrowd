@@ -179,6 +179,7 @@
         var parameters = getUrlParameters();
         var to_send = {assignmentId : parameters.assignmentId, success : true};
         post_to_url(getMturkExternalSumbitUrl(), to_send);
+        // TODO most likely the assignments are not getting submitted
       }
     }
 
@@ -270,7 +271,8 @@
             }
           //}
         } 
-      });      
+      });
+      console.log('csrf setup');      
     }
 
     function render_login_block(username) {
@@ -281,6 +283,7 @@
     var worker_id = false;
 
     $(document).ready(function() {
+      console.log('woow');
       $('#error').hide();
 
       csrf_setup();
@@ -297,6 +300,8 @@
           worker_id = parameters.workerId;
           var assignment_id = parameters.assignmentId;
           var hit_id = parameters.hitId;
+          // TODO! make a get query here to get the CSRF cookie before doing POST
+          $.get(ACCOUNT_URL + '/login/', function(returned_data) {});
           $.post(ACCOUNT_URL + '/turker/', {
             'worker_id' : worker_id,
             'assignment_id' : assignment_id,
