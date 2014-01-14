@@ -62,7 +62,8 @@ def next_question(request):
         reply = {
           'finish' : True,
         }
-        DisambigPollData.objects.finalize_poll(request.user)
+        # DisambigPollData.objects.finalize_poll(request.user)
+        # Accept/reject assignments by hand now that in test mode
 
   else:
     reply = { 'error' : "noauth" }
