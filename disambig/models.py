@@ -13,17 +13,43 @@ N_QUESTIONS = 20
 
 INITIAL_QUESTION = {
   'state' : 1,
-  'text' : """<p>Terms of Use:</p>
+  'text' : """
+
+  <h1>Disambiguation survey</h1>
+  
+  <p>In this survey you will be given a small portion of text with 
+  word highlighted. For the highlighted word choose the category of 
+  terms this word belongs to.</p>
+  
+  <p class='collapse_btn'><u>More details</u></p>
+
+  <div class='collapsable'>
+  
   <p>This poll is a crowd sourcing approach for the disambiguation
-   of concepts that have been identified from the biomedical literature.
-   All concepts have been assigned semantic types. For some concepts the
-   automatic assignment has produced two or three different results.</p>
-  <p>We ask users of this Web site to chose the correct semantic
-   type for the given term by working through a predefined number of
-   questions. As alternative you may indicate that it is not possible
-   to assign the correct type ("I don't know" or "None of the above").</p>
+  of concepts that have been identified from the biomedical literature.
+  All concepts have been assigned semantic types according to UMLS (see below).
+  For some concepts the automatic assignment has produced two or three different results.</p>
+  <p>We ask users to chose the correct semantic
+  type for the given term by working through a predefined number of
+  questions. As alternative you may indicate that it is not possible
+  to assign the correct type ("I don't know" or "None of the above").</p>
+  
+  <h3>What is the UMLS?</h3>
+  
+  <p>The <a href="http://www.nlm.nih.gov/research/umls">UMLS</a>,
+  or Unified Medical Language System, is a set of files and software
+  that brings together many health and biomedical vocabularies and
+  standards to enable interoperability between computer systems.
+  </p>
+  <h3>Links</h3>
+  <p><a href="http://www.nlm.nih.gov/research/umls/quickstart.html">UMLS Quick Start Guide</a></p>
+  <p>Full list of <a href="http://semanticnetwork.nlm.nih.gov/SemGroups/SemGroups.txt">semantic groups</a>.</p>
+
+  </div>
+
   <p>Please do the assignment as thoroughly as you can.</p>
-  <p>Do you agree with the Terms of Use?</p>
+  <p>Proceed to survey?</p>
+
   """,
   'options' : "Yes|No",
   'allow_multiple' : False,

@@ -50,6 +50,20 @@
       "OBJC" : "Objects"
     }
 
+    var group_definitions = {
+      "ANAT" : "body or cellular structures, components and spaces",
+      "CHEM" : "natural or pharmaceutical molecular entities, existing in the "
+             + "body or being used for treating diseases or denoting chemical processes",
+      "DEVI" : "manufactured objects used to measure, observe and treat a living being",
+      "DISO" : "congenital or acquired, physical or mental diseases, pathological processes, signs and symptoms",
+      "GEOG" : "names of geographic locations, e.g. towns",
+      "LIVB" : "all species but also social definitions of human beings",
+      "OBJC" : "manufactured objects in general, e.g. food, substances, physical objects",
+      "PHEN" : "biological functions, experimental observed and environmental results",
+      "PHYS" : "observed effects and results as part of physiological processes",
+      "PROC" : "activities and procedures used to treat patients and administer their stay in the hospital"
+    }
+
     function getUrlParameters() { 
       if (window.location.href.indexOf('?') === -1) {
          return null;
@@ -86,9 +100,9 @@
 
     function addDescriptionToOption(option) {
       if (option in group_descriptions) {
-        return (option + ' <i>(' + group_descriptions[option] + ', UMLS)</i>' );
+        return '<b>' + group_descriptions[option] + '</b><span class="description"> (' + option + '): ' + group_definitions[option] + "</span>";
       } else {
-        return option
+        return option;
       }
     }
 
@@ -192,7 +206,7 @@
       var highlight_begin = instance.offset;
       var highlight_end = instance.length + instance.offset;
 
-      result.text = "<p>Which group does the highligted text correspond to?</p>" +
+      result.text = "<p>Which category does the highligted text correspond to?</p>" +
         "<blockquote><p>" +
           instance.unit_text.slice(0, highlight_begin) + "<span style='background-color: yellow'>" +
           instance.unit_text.slice(highlight_begin, highlight_end) + "</span>" +
@@ -205,6 +219,13 @@
       return result;
     }
 
+    function add_events() {
+      $('.collapse_btn').click(function() {
+        $('.collapsable').slideToggle('slow');
+      });
+    }
+
+    // RENDERING CENTRAL
     function query_callback(returned_data) {
       current_data = returned_data;
       if ("error" in returned_data) {
@@ -222,8 +243,11 @@
             // We need to render a poll-specific model instance here
             current_data = get_data_from_instance(returned_data.instance);
             current_data.state = returned_data.state;
+
           }
-          $('#data').html(render_question_html(current_data))          
+          $('#data').html(render_question_html(current_data)) 
+          add_events();
+         
         }
       }
     }
