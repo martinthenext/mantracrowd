@@ -8,7 +8,7 @@ from django.conf import settings
 import mturk
 from accounts.models import TurkerAssignment
 
-N_QUESTIONS_PER_DATA_ENTRY_REQUIRED = 3
+N_ANSWERS_PER_DATA_ENTRY_REQUIRED = 3
 N_QUESTIONS = 20
 
 INITIAL_QUESTION = {
@@ -87,19 +87,20 @@ class UserAnswer(models.Model):
 
 class DisambigPollDataManager(models.Manager):
   def get_poll_data_for_user(self, user):
-    # get a set of user answers that have been answered by OTHER users 
-    # but less than N_QUESTIONS_PER_DATA_ENTRY_REQUIRED times
+    # get a set of answers by OTHER users 
+    # but less than N_ANSWERS_PER_DATA_ENTRY_REQUIRED times
     user_answers = UserAnswer.objects \
+      .exclude(user=user) \
       .values('question_data').annotate(n_questions=Count('question_data')) \
-      .filter(n_questions__lt=N_QUESTIONS_PER_DATA_ENTRY_REQUIRED) \
-      .exclude(user=user)
-    # exclude answers to the questions that USER answered
+      .filter(n_questions__lt=N_ANSWERS_PER_DATA_ENTRY_REQUIRED)
+    # exclude answers to the questions that USER answered (not his answers though)
     seen_ids = user.useranswer_set.values_list('question_data__id', flat=True)
-    to_chose_from = user_answers.exclude(question_data__id__in=seen_ids)
-    if to_chose_from:
+    to_choose_from = user_answers.exclude(question_data__id__in=seen_ids)
+    if to_choose_from:
       # pick a random one from them
-      index = random.randint(0, to_chose_from.count() - 1)
-      return to_chose_from[index].question_data
+      index = random.randint(0, to_choose_from.count() - 1)
+      chosen_id = to_choose_from[index]['question_data']
+      return DisambigPollData.objects.get(id=chosen_id)
     else:
       # all questions envolved got enough answers, picking question randomly until unanswered found
       while True:
