@@ -130,8 +130,8 @@ class DisambigPollDataManager(models.Manager):
 
   # select_related *hopefully* prefetches related useranswer instances
   def get_answered_question_data(self):
-    return [DisambigPollData.objects.select_related('useranswer').get(id=row['question_data']) 
-      for row in UserAnswer.objects.values('question_data').distinct('question_data')]
+    return [ DisambigPollData.objects.select_related('useranswer').get(id=row['question_data']) 
+      for row in UserAnswer.objects.order_by('-id').values('question_data').distinct('question_data') ]
 
   def get_answer_stats(self, data):
     answers = [row['answer'] for row in data.useranswer_set.values('answer')]
