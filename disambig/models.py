@@ -163,3 +163,24 @@ class UserState(models.Model):
       return "%s has state %s" % (self.user.username, self.state)
     else:
       return "%s has been asked question %s" % (self.user.username, str(self.pending_question_id))
+
+class TestQuestion(models.Model):
+  unit_text = models.TextField()
+  text = models.CharField(max_length=32)
+  offset = models.PositiveSmallIntegerField()
+  length = models.PositiveSmallIntegerField()
+  groups = models.CharField(max_length=16)
+  correct_group = models.CharField(max_length=8)
+
+  def __unicode__(self):
+    return self.get_highlighted_repr() + '->' + self.correct_group
+
+  def get_highlighted_repr(self):
+    begin_highlight = int(self.offset)
+    end_highlight = int(self.offset) + int(self.length)
+
+    slice_one = self.unit_text[:begin_highlight]
+    slice_two = self.unit_text[begin_highlight:end_highlight]
+    slice_three = self.unit_text[end_highlight:]
+
+    return "%s[[%s]]%s" % (slice_one, slice_two, slice_three)
