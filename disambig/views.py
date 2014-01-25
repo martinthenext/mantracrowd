@@ -1,11 +1,16 @@
 from django.http import HttpResponse, Http404
-from models import UserState, DisambigPollData, UserAnswer, N_QUESTIONS, INITIAL_QUESTION
+from models import UserState, DisambigPollData, UserAnswer, N_QUESTIONS, INITIAL_QUESTION, TestQuestion
 from django.contrib.auth.models import User
 import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 
-""" Send emtpy answers to get current state
+""" 
+
+STATE>          1                2      3   ...   FINAL_STATE - 1     FINAL_STATE
+
+SERVE>  INITIAL_QUESTION         Q      Q   ...         Q               FINISH
+
 """
 def next_question(request):
   if request.user.is_authenticated():
@@ -49,13 +54,18 @@ def next_question(request):
         user_state = UserState.objects.get(user=request.user)
         if user_state.pending_question_data:
           poll_data = user_state.pending_question_data
+          instance = model_to_dict(poll_data)
         else:
-          poll_data = DisambigPollData.objects.get_poll_data_for_user(request.user)  
-          user_state.pending_question_data = poll_data
-          user_state.save()
+          if TestQuestion.objects.answered_test_questions():
+            poll_data = DisambigPollData.objects.get_poll_data_for_user(request.user)  
+            user_state.pending_question_data = poll_data
+            user_state.save()
+            instance = model_to_dict(poll_data)
+          else:
+            # Flipping a coin with 1/N(left states) probability  
 
         reply = {
-         'instance' : model_to_dict(poll_data),
+         'instance' : instance,
          'state' : user_state.state
         }
       else:

@@ -10,6 +10,10 @@ from accounts.models import TurkerAssignment
 
 N_ANSWERS_PER_DATA_ENTRY_REQUIRED = 3
 N_QUESTIONS = 20
+N_TEST_QUESTIONS = 2
+
+FIRST_QUESTION_STATE = 2
+FINAL_STATE = N_QUESTIONS + FIRST_QUESTION_STATE
 
 INITIAL_QUESTION = {
   'state' : 1,
@@ -125,8 +129,7 @@ class DisambigPollDataManager(models.Manager):
       mturk.finalize_assignment(turker_assignment[0].assignment_id, True)
 
   def is_user_assignment_complete(self, user):
-    final_state = N_QUESTIONS + 2
-    return user.userstate_set.all()[0].state == final_state
+    return user.userstate_set.all()[0].state == FINAL_STATE
 
   # select_related *hopefully* prefetches related useranswer instances
   def get_answered_question_data(self):
@@ -164,6 +167,53 @@ class UserState(models.Model):
     else:
       return "%s has been asked question %s" % (self.user.username, str(self.pending_question_id))
 
+''' 
+
+Instances of this class get created on state 2 to indicate
+states to ask test questions on, see assign_test_questions()
+
+Answers are filled in later
+
+'''
+class TestQuestionUserAnswer(models.Model):
+  user = models.ForeignKey(User)
+  text_question = models.ForeignKey('TestQuestion')
+  answer = models.CharField(max_length=16, blank=True, null=True)
+  state = models.PositiveSmallIntegerField()
+
+class TestQuestionManager(models.Manager):
+  def answered_test_questions(self, user):
+    return TestQuestionUserAnswer.objects.filter(user=user).count <= N_TEST_QUESTIONS
+
+  ''' Create <N_TEST_QUESTIONS> TestQuestionUserAnswer instances with random states
+      and random test questions for the user
+  '''
+  def assign_test_questions(self, user):
+    test_question_states = random.sample(range(FIRST_QUESTION_STATE, FINAL_STATE), N_TEST_QUESTIONS)
+    # TODO sample random questions from db and create objects in a loop
+
+  def get_random(self, k=1):
+    n_rows = self.model.objects.count()
+    indices = random.sample(range(1, n_rows), k)
+    all_questions = self.model.objects.all()
+    return [all_questions[i] for i in indices]
+
+  # randomly decide whether to ask a question now
+  # if all test questions solved return False
+  # probability of asking should be 1 / N(left states - number of test questions left to answer)
+  # should be called for user states from 2 to 21
+  def if_ask_test_question_rand(user):
+    test_questions_left = TestQuestion.objects.filter(user=user).count()
+    if test_questions_left <= N_TEST_QUESTIONS:
+      return False
+    else:
+      # counting left question states
+      # state 2 -> 20 (2, .., 21) 
+      # state 21 -> 1 (21)
+      # -> FINAL_STATE - STATE 
+      question_states_left = FINAL_STATE - UserState.objects.get(user=user).state
+      # TODO implement probab function to determine prob of having a question answered NOW
+
 class TestQuestion(models.Model):
   unit_text = models.TextField()
   text = models.CharField(max_length=32)
@@ -171,6 +221,8 @@ class TestQuestion(models.Model):
   length = models.PositiveSmallIntegerField()
   groups = models.CharField(max_length=16)
   correct_group = models.CharField(max_length=8)
+
+  objects = TestQuestionManager()
 
   def __unicode__(self):
     return self.get_highlighted_repr() + '->' + self.correct_group
@@ -184,3 +236,15 @@ class TestQuestion(models.Model):
     slice_three = self.unit_text[end_highlight:]
 
     return "%s[[%s]]%s" % (slice_one, slice_two, slice_three)
+
+  def get_fake_poll_data_dict(self):
+    return {
+      'unit_text' : self.unit_text,
+      'text' : self.text,
+      'unit_id' : "d5245412.u1",
+      'length' : self.length,
+      'groups' : self.groups,
+      'offset' : self.offset,
+      'corpus' : "EMEA",
+      "id" : 239888
+    }
