@@ -1,5 +1,5 @@
 from django.http import HttpResponse, Http404
-from models import UserState, DisambigPollData, UserAnswer, N_QUESTIONS, INITIAL_QUESTION, TestQuestion
+from models import UserState, DisambigPollData, UserAnswer, N_QUESTIONS, INITIAL_QUESTION, TestQuestion, TestQuestionUserAnswer
 from django.contrib.auth.models import User
 import json
 from django.core.exceptions import ObjectDoesNotExist
@@ -25,13 +25,22 @@ def next_question(request):
             if request.POST['answer'] == u'Yes':
               user_state_data.state = 2
               user_state_data.save()
+              # Assign test questions to the person
+              TestQuestion.objects.assign_test_questions(request.user)
           else:
             if user_state_data.state < N_QUESTIONS + 2:
-              DisambigPollData.objects.save_answer_by_user(
-                request.user,
-                user_state_data.pending_question_data,
-                request.POST['answer']
-              )
+              # Check if the answer is to a test question
+              test_question_answer = TestQuestionUserAnswer.objects.filter(user=request.user, state=user_state_data.state)
+              if test_question_answer:
+                # TODO test if answers are being written
+                test_question_answer.answer = request.POST['answer']
+                test_question_answer.save()
+              else:
+                DisambigPollData.objects.save_answer_by_user(
+                  request.user,
+                  user_state_data.pending_question_data,
+                  request.POST['answer']
+                )
             user_state_data.state = user_state_data.state + 1
             user_state_data.pending_question_data = None
             user_state_data.save()
@@ -56,13 +65,15 @@ def next_question(request):
           poll_data = user_state.pending_question_data
           instance = model_to_dict(poll_data)
         else:
-          if TestQuestion.objects.answered_test_questions():
+          # Check if we need to ask a test question now
+          test_question_answer = TestQuestionUserAnswer.objects.filter(user=request.user, state=user_state_data.state)
+          if test_question_answer:
+            instance = test_question_answer[0].test_question.get_fake_poll_data_dict()
+          else:
             poll_data = DisambigPollData.objects.get_poll_data_for_user(request.user)  
             user_state.pending_question_data = poll_data
             user_state.save()
             instance = model_to_dict(poll_data)
-          else:
-            # Flipping a coin with 1/N(left states) probability  
 
         reply = {
          'instance' : instance,

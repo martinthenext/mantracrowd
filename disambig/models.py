@@ -177,42 +177,31 @@ Answers are filled in later
 '''
 class TestQuestionUserAnswer(models.Model):
   user = models.ForeignKey(User)
-  text_question = models.ForeignKey('TestQuestion')
+  test_question = models.ForeignKey('TestQuestion')
   answer = models.CharField(max_length=16, blank=True, null=True)
   state = models.PositiveSmallIntegerField()
 
-class TestQuestionManager(models.Manager):
-  def answered_test_questions(self, user):
-    return TestQuestionUserAnswer.objects.filter(user=user).count <= N_TEST_QUESTIONS
+  def __unicode__(self):
+    if self.answer:
+      return "%s answered %s to %s" % (self.user.username, self.answer, self.test_question.unit_text)
+    else:
+      return "%s on state %s has to answer [[%s]]" % (self.user.username, self.state, self.test_question.unit_text)
 
+class TestQuestionManager(models.Manager):
   ''' Create <N_TEST_QUESTIONS> TestQuestionUserAnswer instances with random states
       and random test questions for the user
   '''
   def assign_test_questions(self, user):
     test_question_states = random.sample(range(FIRST_QUESTION_STATE, FINAL_STATE), N_TEST_QUESTIONS)
-    # TODO sample random questions from db and create objects in a loop
+    test_questions = self.get_random(N_TEST_QUESTIONS)
+    for state, question in itertools.izip(test_question_states, test_questions):
+      TestQuestionUserAnswer.objects.create(user=user, test_question=question, state=state)
 
   def get_random(self, k=1):
     n_rows = self.model.objects.count()
     indices = random.sample(range(1, n_rows), k)
     all_questions = self.model.objects.all()
     return [all_questions[i] for i in indices]
-
-  # randomly decide whether to ask a question now
-  # if all test questions solved return False
-  # probability of asking should be 1 / N(left states - number of test questions left to answer)
-  # should be called for user states from 2 to 21
-  def if_ask_test_question_rand(user):
-    test_questions_left = TestQuestion.objects.filter(user=user).count()
-    if test_questions_left <= N_TEST_QUESTIONS:
-      return False
-    else:
-      # counting left question states
-      # state 2 -> 20 (2, .., 21) 
-      # state 21 -> 1 (21)
-      # -> FINAL_STATE - STATE 
-      question_states_left = FINAL_STATE - UserState.objects.get(user=user).state
-      # TODO implement probab function to determine prob of having a question answered NOW
 
 class TestQuestion(models.Model):
   unit_text = models.TextField()
