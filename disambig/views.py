@@ -33,8 +33,8 @@ def next_question(request):
               test_question_answer = TestQuestionUserAnswer.objects.filter(user=request.user, state=user_state_data.state)
               if test_question_answer:
                 # TODO test if answers are being written
-                test_question_answer.answer = request.POST['answer']
-                test_question_answer.save()
+                test_question_answer[0].answer = request.POST['answer']
+                test_question_answer[0].save()
               else:
                 DisambigPollData.objects.save_answer_by_user(
                   request.user,
