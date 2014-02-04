@@ -131,10 +131,9 @@ class DisambigPollDataManager(models.Manager):
   def is_user_assignment_complete(self, user):
     return user.userstate_set.all()[0].state == FINAL_STATE
 
-  # select_related *hopefully* prefetches related useranswer instances
+  # get unique data entries that has been answered
   def get_answered_question_data(self):
-    return [ DisambigPollData.objects.select_related('useranswer').get(id=row['question_data']) 
-      for row in UserAnswer.objects.order_by('-id').values('question_data').distinct('question_data') ]
+    return DisambigPollData.objects.filter(useranswer__id__isnull=False).annotate(n=Count('id'))
 
   def get_answer_stats(self, data):
     answers = [row['answer'] for row in data.useranswer_set.values('answer')]
