@@ -1,0 +1,42 @@
+#wrapper {
+  width: 600px;
+  margin: 0 auto;
+  background-color: whitesmoke;
+  font-family: monospace;
+}
+#login {
+  padding: 10px;
+  text-align: right;
+}
+#data {
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 5px;
+}
+#next {
+  cursor: pointer; cursor: hand;
+  padding: 20px;
+}
+#next:hover {
+  background-color: lavender;
+}
+#error {
+  padding: 10px;
+  background-color: red;
+  color: white;
+}
+input {
+  font-family: monospace;
+}
+blockquote {
+  border-left: 5px solid grey;
+  padding-left: 10px;
+}
+
+span.description {
+  color: #505050;
+}
+
+.collapsable {
+  display: none;
+}

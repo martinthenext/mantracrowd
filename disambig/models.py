@@ -131,9 +131,9 @@ class DisambigPollDataManager(models.Manager):
   def is_user_assignment_complete(self, user):
     return user.userstate_set.all()[0].state == FINAL_STATE
 
-  # get unique data entries that has been answered
+  # get unique data entries that has been answered sorted by ID of answer 
   def get_answered_question_data(self):
-    return DisambigPollData.objects.filter(useranswer__id__isnull=False).annotate(n=Count('id'))
+    return DisambigPollData.objects.filter(useranswer__id__isnull=False).annotate(n=Count('id')).order_by('-useranswer')
 
   def get_answer_stats(self, data):
     answers = [row['answer'] for row in data.useranswer_set.values('answer')]
