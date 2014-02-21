@@ -15,6 +15,13 @@ N_TEST_QUESTIONS = 2
 FIRST_QUESTION_STATE = 2
 FINAL_STATE = N_QUESTIONS + FIRST_QUESTION_STATE
 
+GROUP_NAMES = [
+ 'ACTI', 'ANAT', 'CHEM', 'DEVI',
+ 'DISO', 'GENE', 'GEOG', 'LIVB', 
+ 'OCCU', 'ORGA', 'PHYS', 'PROC',
+ 'PHEN', 'OBJC'
+ ]
+
 INITIAL_QUESTION = {
   'state' : 1,
   'text' : """
@@ -135,11 +142,6 @@ class DisambigPollDataManager(models.Manager):
   def get_answered_question_data(self):
     return DisambigPollData.objects.filter(useranswer__id__isnull=False).annotate(n=Count('id')).order_by('-useranswer')
 
-  def get_answer_stats(self, data):
-    answers = [row['answer'] for row in data.useranswer_set.values('answer')]
-    grouped = [(answer_type, answers.count(answer_type)) for answer_type in set(answers)]
-    return sorted(grouped, key=lambda (x,y) : y, reverse=True)
-
 class DisambigPollData(models.Model):
   unit_id = models.CharField(max_length=20)
   text = models.CharField(max_length=32)
@@ -153,6 +155,11 @@ class DisambigPollData(models.Model):
 
   def __unicode__(self):
     return "%s @ %s, %s, %s (%s)" % (self.text, self.unit_id, str(self.offset), str(self.length), self.corpus)
+
+  def get_answer_stats(self):
+    answers = [row['answer'] for row in self.useranswer_set.values('answer')]
+    grouped = [(answer_type, answers.count(answer_type)) for answer_type in set(answers)]
+    return sorted(grouped, key=lambda (x,y) : y, reverse=True)
 
 class UserState(models.Model):
   user = models.ForeignKey(User)

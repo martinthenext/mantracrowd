@@ -12,6 +12,8 @@ from django.contrib.auth.models import User
 from models import TurkerAssignment
 from disambig.models import DisambigPollData
 
+CORRECT_MAGIC_TOKEN = 23944827172623
+
 @csrf_protect
 def login_view(request):
   if request.method == "GET":
@@ -84,16 +86,22 @@ def logout_view(request):
     return HttpResponseRedirect('/')
   
 @csrf_protect
-def register_view(request):
+def register_view(request, magic_token=None):
   if request.user.is_authenticated():
     return HttpResponse('You\'re already registered as %s' % request.user.username)
   if request.method == 'POST':
     form = UserCreationForm(request.POST)
     if form.is_valid():
       new_user = form.save()
-      new_user.is_active = False
-      new_user.save()
-      return HttpResponse('Your registration request has been sent.')
+
+      if magic_token==CORRECT_MAGIC_TOKEN:
+        new_user.is_active = True
+        new_user.save()
+        response = HttpResponse('Your registration is successfull, please login <a href=\"https://kitt.cl.uzh.ch/kitt/mantracrowd/\">here</a>.')
+      else:
+        response = HttpResponse('Your registration request has been sent.')
+      
+      return response 
   else:
     form = UserCreationForm()
     

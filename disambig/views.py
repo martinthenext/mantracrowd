@@ -1,10 +1,11 @@
 from django.http import HttpResponse, Http404
-from models import UserState, DisambigPollData, UserAnswer, N_QUESTIONS, INITIAL_QUESTION, TestQuestion, TestQuestionUserAnswer
+from models import UserState, DisambigPollData, UserAnswer, N_QUESTIONS, INITIAL_QUESTION, TestQuestion, TestQuestionUserAnswer, GROUP_NAMES
 from django.contrib.auth.models import User
 import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 from django.db.models import Count
+import itertools
 
 """ 
 
@@ -102,7 +103,7 @@ def answers(request):
     def serialize_question_and_answers(question):
       result = {}
       result['question'] = model_to_dict(q)
-      result['answers'] = DisambigPollData.objects.get_answer_stats(q)
+      result['answers'] = q.get_answer_stats()
       return result
 
     reply['questions'] = [serialize_question_and_answers(q) for q in questions]
@@ -110,3 +111,27 @@ def answers(request):
     raise Http404
 
   return HttpResponse(json.dumps(reply, ensure_ascii=False), content_type='application/json')
+
+def answers_csv(request):
+  if request.user.is_authenticated:
+    result = ','.join(GROUP_NAMES) + ',TEXT,CORPUS,UNIT\n'
+
+    questions = DisambigPollData.objects.get_answered_question_data()
+
+    for question in questions:
+      answers = dict(question.get_answer_stats())
+      options = question.groups.split('|')
+      for group_name in GROUP_NAMES:
+        if group_name in answers.keys():
+          result += answers[group_name]
+        else:
+          if group_name in options:
+            result += '0'
+          else:
+            result += '-'
+        result += ','
+      result += '\n'
+
+    return HttpResponse(result)
+  else:
+    raise Http404
