@@ -114,6 +114,9 @@ def answers(request):
 
 def answers_csv(request):
   if request.user.is_authenticated:
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="answers.csv"'
+
     result = ','.join(GROUP_NAMES) + ',TEXT,CORPUS,UNIT\n'
 
     questions = DisambigPollData.objects.get_answered_question_data()
@@ -123,15 +126,17 @@ def answers_csv(request):
       options = question.groups.split('|')
       for group_name in GROUP_NAMES:
         if group_name in answers.keys():
-          result += answers[group_name]
+          result += str(answers[group_name])
         else:
           if group_name in options:
             result += '0'
           else:
             result += '-'
         result += ','
+      result += question.text + ',' + question.corpus + ',' + question.unit_id
       result += '\n'
 
-    return HttpResponse(result)
+    response.write(result)
+    return response
   else:
     raise Http404
