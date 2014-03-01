@@ -97,6 +97,11 @@ class UserAnswer(models.Model):
     return "%s replied %s to %s" % (self.user.username, self.answer, unicode(self.question_data))
 
 class DisambigPollDataManager(models.Manager):
+  '''
+  >>>u = User.objects.all()[0]
+  >>>UserAnswer.objects.filter(question_data=DisambigPollData.objects.get_poll_data_for_user(u)).count()
+  if there are questions unsanswered fully should be 1 or 2
+  '''
   def get_poll_data_for_user(self, user):
     # get a set of answers by OTHER users 
     # but less than N_ANSWERS_PER_DATA_ENTRY_REQUIRED times
