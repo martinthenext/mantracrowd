@@ -117,7 +117,7 @@ def answers_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="answers.csv"'
 
-    result = ','.join(GROUP_NAMES) + ',TEXT,CORPUS,UNIT\n'
+    result = 'sep=,\n' + ','.join(GROUP_NAMES) + ',TEXT,CORPUS,UNIT\n'
 
     questions = DisambigPollData.objects.get_answered_question_data()
 
