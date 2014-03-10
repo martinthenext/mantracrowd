@@ -21,6 +21,7 @@ urlpatterns = patterns('',
   
   url(r'^disambig/answers/$', 'disambig.views.answers'),
   url(r'^disambig/answers.csv$', 'disambig.views.answers_csv'),
+  url(r'^disambig/questions.csv$', 'disambig.views.questions_csv'),
 
   url(r'^admin/', include(admin.site.urls)),
 )

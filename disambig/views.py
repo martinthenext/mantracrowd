@@ -1,5 +1,5 @@
 from django.http import HttpResponse, Http404
-from models import UserState, DisambigPollData, UserAnswer, N_QUESTIONS, INITIAL_QUESTION, TestQuestion, TestQuestionUserAnswer, GROUP_NAMES
+from models import UserState, DisambigPollData, UserAnswer, N_QUESTIONS, INITIAL_QUESTION, TestQuestion, TestQuestionUserAnswer, OPTION_NAMES
 from django.contrib.auth.models import User
 import json
 from django.core.exceptions import ObjectDoesNotExist
@@ -113,18 +113,18 @@ def answers(request):
   return HttpResponse(json.dumps(reply, ensure_ascii=False), content_type='application/json')
 
 def answers_csv(request):
-  if request.user.is_authenticated:
+  if request.user.is_authenticated():
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="answers.csv"'
 
-    result = 'sep=,\n' + ','.join(GROUP_NAMES) + ',TEXT,CORPUS,UNIT\n'
+    result = 'sep=,\n' + ','.join(OPTION_NAMES) + ',TEXT,CORPUS,UNIT\n'
 
     questions = DisambigPollData.objects.get_answered_question_data()
 
     for question in questions:
       answers = dict(question.get_answer_stats())
       options = question.groups.split('|')
-      for group_name in GROUP_NAMES:
+      for group_name in OPTION_NAMES:
         if group_name in answers.keys():
           result += str(answers[group_name])
         else:
@@ -135,6 +135,23 @@ def answers_csv(request):
         result += ','
       result += question.text + ',' + question.corpus + ',' + question.unit_id
       result += '\n'
+
+    response.write(result)
+    return response
+  else:
+    raise Http404
+
+def questions_csv(request):
+  if request.user.is_authenticated():
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="questions.csv"'
+
+    result = 'sep=,\n'
+
+    questions = DisambigPollData.objects.get_answered_question_data()
+    for question in questions:
+      result += str(question.id) + ',' + question.corpus + ',' + question.unit_id + ','
+      result += question.get_highlighted_repr() + ',' + question.groups + '|None|IDK\n'
 
     response.write(result)
     return response

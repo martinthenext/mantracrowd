@@ -22,6 +22,8 @@ GROUP_NAMES = [
  'PHEN', 'OBJC'
  ]
 
+OPTION_NAMES = GROUP_NAMES + ['IDK', 'None']
+
 INITIAL_QUESTION = {
   'state' : 1,
   'text' : """
@@ -160,6 +162,16 @@ class DisambigPollData(models.Model):
 
   def __unicode__(self):
     return "%s @ %s, %s, %s (%s)" % (self.text, self.unit_id, str(self.offset), str(self.length), self.corpus)
+
+  def get_highlighted_repr(self):
+    begin_highlight = int(self.offset)
+    end_highlight = int(self.offset) + int(self.length)
+
+    slice_one = self.unit_text[:begin_highlight]
+    slice_two = self.unit_text[begin_highlight:end_highlight]
+    slice_three = self.unit_text[end_highlight:]
+
+    return "%s[[%s]]%s" % (slice_one, slice_two, slice_three)
 
   def get_answer_stats(self):
     answers = [row['answer'] for row in self.useranswer_set.values('answer')]
