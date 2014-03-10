@@ -117,25 +117,33 @@ def answers_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="answers.csv"'
 
-    result = 'sep=,\n' + ','.join(OPTION_NAMES) + ',TEXT,CORPUS,UNIT\n'
+    result = 'sep=;\n' + ';'.join(OPTION_NAMES) + ';TEXT;CORPUS;UNIT\n'
+
+    def get_answer_table_repr(questions, is_test):
+      result = ''
+      for question in questions:
+        answers = dict(question.get_answer_stats())
+        options = question.groups.split('|')
+        for group_name in OPTION_NAMES:
+          if group_name in answers.keys():
+            result += str(answers[group_name])
+          else:
+            if group_name in options:
+              result += '0'
+            else:
+              result += '-'
+          result += ';'
+        if is_test:
+          result += question.text + ';NA;NA'
+        else:
+          result += question.text + ';' + question.corpus + ';' + question.unit_id
+        result += '\n'
+      return result
 
     questions = DisambigPollData.objects.get_answered_question_data()
-
-    for question in questions:
-      answers = dict(question.get_answer_stats())
-      options = question.groups.split('|')
-      for group_name in OPTION_NAMES:
-        if group_name in answers.keys():
-          result += str(answers[group_name])
-        else:
-          if group_name in options:
-            result += '0'
-          else:
-            result += '-'
-        result += ','
-      result += question.text + ',' + question.corpus + ',' + question.unit_id
-      result += '\n'
-
+    result += get_answer_table_repr(questions, False)
+    questions = TestQuestion.objects.get_answered_question_data()
+    result += get_answer_table_repr(questions, True)
     response.write(result)
     return response
   else:

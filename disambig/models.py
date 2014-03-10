@@ -226,6 +226,9 @@ class TestQuestionManager(models.Manager):
     all_questions = self.model.objects.all()
     return [all_questions[i] for i in indices]
 
+  def get_answered_question_data(self):
+    return self.model.objects.filter(testquestionuseranswer__id__isnull=False).order_by('-testquestionuseranswer')
+
 class TestQuestion(models.Model):
   unit_text = models.TextField()
   text = models.CharField(max_length=32)
@@ -260,3 +263,8 @@ class TestQuestion(models.Model):
       'corpus' : "EMEA",
       "id" : 239888
     }
+
+  def get_answer_stats(self):
+    answers = [row['answer'] for row in self.testquestionuseranswer_set.values('answer')]
+    grouped = [(answer_type, answers.count(answer_type)) for answer_type in set(answers)]
+    return sorted(grouped, key=lambda (x,y) : y, reverse=True)
