@@ -154,14 +154,37 @@ def questions_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="questions.csv"'
 
-    result = 'sep=,\n'
+    result = 'sep=;\n'
 
     questions = DisambigPollData.objects.get_answered_question_data()
     for question in questions:
-      result += str(question.id) + ',' + question.corpus + ',' + question.unit_id + ','
-      result += question.get_highlighted_repr() + ',' + question.groups + '|None|IDK\n'
+      result += str(question.id) + ';' + question.corpus + ';' + question.unit_id + ','
+      result += question.get_highlighted_repr() + ';' + question.groups + '|None|IDK\n'
 
     response.write(result)
     return response
   else:
     raise Http404
+
+''' Output questions with majority votes where agreement is > agreement threshold
+'''
+def vote_results_csv(request):
+  if ('AgreementThr' in request.GET):
+    agreement_threshold = float(request.GET['AgreementThr'])
+  else:
+    agreement_threshold = 0.5
+
+  response = HttpResponse(content_type='text/csv')
+  filename = "vote_results_thr%s.csv" % str(agreement_threshold) 
+  response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+
+  response.write('sep=|\n')
+
+  for question in DisambigPollData.objects.get_answered_question_data():
+    majority_vote = question.get_majority_vote(agreement_threshold=agreement_threshold)
+    if majority_vote is not None:
+      #response.write('%s;%s\n') % (question.get_highlighted_repr(), majority_vote)
+      #response.write(question.get_highlighted_repr()+'|'+majority_vote+'\n')
+      response.write('%s|%s|%s|%s|%s\n' % (question.length, question.offset, question.text, question.unit_text, majority_vote))
+
+  return response

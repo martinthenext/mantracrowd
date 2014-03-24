@@ -179,13 +179,20 @@ class DisambigPollData(models.Model):
     return sorted(grouped, key=lambda (x,y) : y, reverse=True)
 
   ''' Get majority vote if agreement > agreement_threshold
-      and it is a group (not IDK, not None)
+      and it is a group (not IDK, not None), votes >= votes_required
   '''
-  def get_majority_vote(self, agreement_threshold=0.5):
+  def get_majority_vote(self, agreement_threshold=0.5, votes_required=3):
     answer_stats = self.get_answer_stats()
     majority_vote = answer_stats[0]
-    agreement = float(majority_vote[1]) / float(reduce(lambda x, y: (0, x[1]+y[1]), answer_stats)[1])
-    return majority_vote[0] if agreement > agreement_threshold else None
+    if majority_vote[0] in (u'IDK', u'None'):
+      return None
+    else:
+      total_votes = reduce(lambda x, y: (0, x[1]+y[1]), answer_stats)[1]
+      if total_votes < votes_required:
+        return None
+      else:
+        agreement = float(majority_vote[1]) / float(total_votes)
+        return majority_vote[0] if agreement > agreement_threshold else None
 
 class UserState(models.Model):
   user = models.ForeignKey(User)
