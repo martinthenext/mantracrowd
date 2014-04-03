@@ -178,13 +178,21 @@ def vote_results_csv(request):
   filename = "vote_results_thr%s.csv" % str(agreement_threshold) 
   response['Content-Disposition'] = 'attachment; filename="%s"' % filename
 
-  response.write('sep=|\n')
+  response.write('sep=\t\n')
 
   for question in DisambigPollData.objects.get_answered_question_data():
     majority_vote = question.get_majority_vote(agreement_threshold=agreement_threshold)
     if majority_vote is not None:
       #response.write('%s;%s\n') % (question.get_highlighted_repr(), majority_vote)
       #response.write(question.get_highlighted_repr()+'|'+majority_vote+'\n')
-      response.write('%s|%s|%s|%s|%s\n' % (question.length, question.offset, question.text, question.unit_text, majority_vote))
-
+      #response.write('%s|%s|%s|%s|%s\n' % (question.length, question.offset, question.text, question.unit_text, majority_vote))
+      response.write('\t'.join([
+        str(question.length),
+        str(question.offset),
+        question.groups,
+        question.text,
+        question.unit_text,
+        majority_vote,
+        question.get_highlighted_repr(),
+      ]) + '\n')
   return response
