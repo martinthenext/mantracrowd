@@ -1,4 +1,5 @@
-from django.conf.urls.defaults import patterns, include, url
+#from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import url, include
 from django.http import HttpResponseRedirect
 
 import settings
@@ -6,7 +7,8 @@ import settings
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
+#urlpatterns = patterns('',
+urlpatterns = [
   url(r'^$', lambda r: HttpResponseRedirect(settings.STATIC_URL + 'disambiguation.html')),
   url(r'^answers/$', lambda r: HttpResponseRedirect(settings.STATIC_URL + 'answers.html')),
 
@@ -25,5 +27,5 @@ urlpatterns = patterns('',
   url(r'^disambig/vote_results.csv$', 'disambig.views.vote_results_csv'),
 
   url(r'^admin/', include(admin.site.urls)),
-)
-  
+#)
+]
